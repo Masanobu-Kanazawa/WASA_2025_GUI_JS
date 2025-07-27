@@ -29,7 +29,7 @@ class WASADataManager {
         };
         
         // データ履歴（グラフ用）
-        this.historyLength = 20; // 20秒分
+        this.historyLength = WASAGraphManager.maxGraphWidth * WASADataManager.samplePerSecond + 1; // グラフ幅×1秒間に取得する回数分
         this.altitudeHist = [];
         this.rpmHist = [];
         this.tasHist = [];       // 対気速度履歴
@@ -60,10 +60,10 @@ class WASADataManager {
     
     // タイマー開始
     startTimers() {
-        // AWS APIタイマー（1秒間隔）
+        // AWS APIタイマー
         this.awsTimer = setInterval(() => {
             this.updateAWSData();
-        }, 1000);
+        }, 1000 / WASADataManager.samplePerSecond);
         
         // アメダスタイマー（1分間隔）
         this.amedasTimer = setInterval(() => {
@@ -127,6 +127,7 @@ class WASADataManager {
         // データ更新
         this.data.latitude = parseFloat(apiData.Latitude || 0);
         this.data.longitude = parseFloat(apiData.Longitude || 0);
+        this.data.altitude = parseFloat(apiData.Altitude || 0);
         this.data.gpsAltitude = parseFloat(apiData.GPSAltitude || 0);
         this.data.gpsCourse = parseFloat(apiData.GPSCourse || 0);
         this.data.groundSpeed = parseFloat(apiData.GPSSpeed || 0);
@@ -157,14 +158,12 @@ class WASADataManager {
     fallbackToSimulation() {
         console.log('🎮 シミュレーションモード:', new Date().toLocaleTimeString());
         
-        const time = Date.now() / 1000;
-        
-        // フジ川の座標範囲でシミュレーション
-        const fuzigawa = {
-            lat_min: 35.1172,
-            lat_max: 35.1247,
-            lon_min: 138.6284,
-            lon_max: 138.6353
+        // 琵琶湖の座標範囲でシミュレーション
+        const biwako = {
+            lat_min: 35.2191,
+            lat_max: 35.42,
+            lon_min: 136.097,
+            lon_max: 136.279
         };
         
         // ランダムデータ生成
@@ -172,8 +171,8 @@ class WASADataManager {
         this.data.tacho = Math.random() * 10;
         this.data.roll = (Math.random() - 0.5) * 10;
         this.data.pitch = (Math.random() - 0.5) * 10;
-        this.data.latitude = fuzigawa.lat_min + Math.random() * (fuzigawa.lat_max - fuzigawa.lat_min);
-        this.data.longitude = fuzigawa.lon_min + Math.random() * (fuzigawa.lon_max - fuzigawa.lon_min);
+        this.data.latitude = biwako.lat_min + Math.random() * (biwako.lat_max - biwako.lat_min);
+        this.data.longitude = biwako.lon_min + Math.random() * (biwako.lon_max - biwako.lon_min);
         this.data.rpm = Math.floor(Math.random() * 200);
         this.data.groundSpeed = Math.random() * 10;
         this.data.gpsAltitude = Math.random() * 100;
@@ -234,7 +233,7 @@ class WASADataManager {
     // グラフ用履歴データを取得
     getHistoryData() {
         const N = this.altitudeHist.length;
-        const x = Array.from({length: N}, (_, i) => -(N-1-i) * 1.0);
+        const x = Array.from({length: N}, (_, i) => -(N-1-i) / WASADataManager.samplePerSecond);
         
         return {
             x: x,
@@ -264,3 +263,5 @@ class WASADataManager {
         console.log('WASADataManager: 破棄されました');
     }
 } 
+
+WASADataManager.samplePerSecond = 4; // 1秒間に取得するサンプル数

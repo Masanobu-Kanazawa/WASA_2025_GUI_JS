@@ -6,7 +6,7 @@ class WASAGraphManager {
         // グラフ設定（元のPythonアプリと同じ）
         this.graphConfigs = [
             { id: 'altitude', title: '高度', canvasId: 'altitude-graph', yMin: 0, yMax: 10, color: '#3388ff' },
-            { id: 'rpm', title: '回転数', canvasId: 'rpm-graph', yMin: 0, yMax: 200, color: '#ff6384' },
+            { id: 'rpm', title: 'ペラ回転数', canvasId: 'rpm-graph', yMin: 0, yMax: 200, color: '#ff6384' },
             { id: 'tas', title: '対気速度', canvasId: 'tas-graph', yMin: 0, yMax: 10, color: '#36a2eb' },
             { id: 'ground', title: '対地速度', canvasId: 'ground-graph', yMin: 0, yMax: 10, color: '#ffce56' },
             { id: 'roll', title: 'roll', canvasId: 'roll-graph', yMin: -10, yMax: 10, color: '#4bc0c0' },
@@ -74,7 +74,7 @@ class WASAGraphManager {
                     x: {
                         display: true,
                         type: 'linear',
-                        min: -20,
+                        min: -WASAGraphManager.maxGraphWidth,
                         max: 0,
                         ticks: {
                             stepSize: 2,
@@ -171,7 +171,7 @@ class WASAGraphManager {
         // X軸範囲を動的に調整
         const minX = Math.min(...xData);
         const maxX = Math.max(...xData);
-        chart.options.scales.x.min = Math.min(minX, -20);
+        chart.options.scales.x.min = Math.min(minX, -WASAGraphManager.maxGraphWidth);
         chart.options.scales.x.max = Math.max(maxX, 0);
         
         // チャート更新（アニメーション無効）
@@ -325,3 +325,5 @@ class WASAGraphManager {
         console.log('WASAGraphManager: 破棄されました');
     }
 } 
+
+WASAGraphManager.maxGraphWidth = 20; // グラフの最大幅（秒単位）

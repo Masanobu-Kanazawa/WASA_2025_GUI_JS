@@ -6,6 +6,13 @@ class WASAMapManager {
         
         // 地図設定（元のPythonアプリと同じ）
         this.mapSettings = {
+            "biwako": {
+                // フル範囲用設定
+                // "lat_min": 35.1187, "lat_max": 35.5204,
+                // "lon_min": 135.9861, "lon_max": 136.3499
+                "lat_min": 35.2191, "lat_max": 35.42,
+                "lon_min": 136.097, "lon_max": 136.279
+            },
             "fuzigawa": {
                 "lat_min": 35.1172, "lat_max": 35.1247,
                 "lon_min": 138.6284, "lon_max": 138.6353
@@ -17,16 +24,12 @@ class WASAMapManager {
             "okegawa": {
                 "lat_min": 35.9716, "lat_max": 35.9814,
                 "lon_min": 139.5194, "lon_max": 139.529
-            },
-            "biwako": {
-                "lat_min": 35.1187, "lat_max": 35.5204,
-                "lon_min": 135.9861, "lon_max": 136.3499
-            }
+            }   
         };
         
         // 軌跡データ
         this.trajectory = [];
-        this.trajectoryEnabled = false;
+        this.trajectoryEnabled = true;
         
         // 風データ
         this.windDirection = null;
@@ -109,7 +112,7 @@ class WASAMapManager {
         });
         
         // ESRI衛星写真タイルを読み込み
-        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        L.tileLayer('https://cyberjapandata.gsi.go.jp/xyz/pale/{z}/{x}/{y}.png', {
             attribution: 'Tiles © Esri'
         }).addTo(this.map);
         
@@ -186,10 +189,10 @@ class WASAMapManager {
         }).addTo(this.map);
     }
     
-    // 軌跡開始/停止切り替え
-    toggleTrajectory() {
-        this.trajectoryEnabled = !this.trajectoryEnabled;
-        console.log(`軌跡: ${this.trajectoryEnabled ? '開始' : '停止'}`);
+    // 軌跡開始
+    startTrajectory() {
+        this.trajectoryEnabled = true;
+        console.log('軌跡開始');
     }
     
     // 軌跡停止
@@ -205,6 +208,8 @@ class WASAMapManager {
             this.map.removeLayer(this.trajectoryLayer);
             this.trajectoryLayer = L.layerGroup().addTo(this.map);
         }
+        WASAMapManager.phase = 1;
+        WASAMapManager.reachedGoal = false;
         console.log('軌跡リセット');
     }
     
@@ -287,6 +292,7 @@ class WASAMapManager {
     // 軌跡更新
     updateTrajectory(lat, lon) {
         if (!this.trajectoryEnabled) return;
+        if (lat < 0.1 || lon < 0.1) return;
         
         const position = [lat, lon];
         this.trajectory.push(position);
@@ -305,6 +311,9 @@ class WASAMapManager {
         
         // 飛行機マーカー更新
         this.updateAircraft(latitude, longitude, heading);
+
+        // 距離更新
+        this.updateDistanceMeters(latitude, longitude);
         
         // 軌跡更新
         this.updateTrajectory(latitude, longitude);
@@ -357,17 +366,43 @@ class WASAMapManager {
         console.log(`設定値 - 東経: ${setting.lon_max}° vs 表示: ${currentBounds.getEast()}°`);
         console.log(`設定値 - 西経: ${setting.lon_min}° vs 表示: ${currentBounds.getWest()}°`);
     }
-    
-    // 軌跡の累積距離（メートル）を計算
-    getTrajectoryDistanceMeters() {
-        if (this.trajectory.length < 2) return 0;
-        let total = 0;
-        for (let i = 1; i < this.trajectory.length; i++) {
-            const [lat1, lon1] = this.trajectory[i - 1];
-            const [lat2, lon2] = this.trajectory[i];
-            total += this._haversine(lat1, lon1, lat2, lon2);
+
+    updateDistanceMeters(lat, lon) {
+        if (this.currentMapKey !== 'biwako') return;
+
+        const distFromP = this._haversine(lat, lon, WASAMapManager.points.P.lat, WASAMapManager.points.P.lon);
+        const distToK = this._haversine(lat, lon, WASAMapManager.points.K.lat, WASAMapManager.points.K.lon);
+
+        if (distFromP > 1000000) return;  // 無効な初期座標想定
+
+        // 段階遷移チェック
+        if ((WASAMapManager.phase === 1 || WASAMapManager.phase === 3) && distFromP >= 10975) {
+            WASAMapManager.phase = WASAMapManager.phase + 1;
+            console.log(`フェーズ変更: ${WASAMapManager.phase}`);
+        } else if (WASAMapManager.phase === 2 && distFromP <= 1000) {
+            WASAMapManager.phase = 3;
+            console.log(`フェーズ変更: ${WASAMapManager.phase}`);
         }
-        return total;
+
+        // フェーズ別距離計算
+        if (WASAMapManager.phase === 1) {
+            WASAMapManager.distance = distFromP;
+        }
+
+        if (WASAMapManager.phase === 2) {
+            WASAMapManager.distance = (21097.5 - distToK) < 10975 ? 10975 : (21097.5 - distToK);
+        }
+
+        if (WASAMapManager.phase === 3) {
+            WASAMapManager.distance = (distFromP <= 1000) ? 21097.5 : (21097.5 + distToK);
+        }
+
+        if (WASAMapManager.phase === 4) {
+            if (!WASAMapManager.reachedGoal && distFromP <= 300) {
+                WASAMapManager.reachedGoal = true;
+            }
+            WASAMapManager.distance = WASAMapManager.reachedGoal ? 42195 : ((42195 - distFromP) < 31220 ? 31220 : (42195 - distFromP));
+        }
     }
 
     // 2点間の距離（メートル, Haversine公式）
@@ -411,3 +446,14 @@ class WASAMapManager {
         });
     }
 } 
+
+WASAMapManager.points = {
+    P: { lat: 35.294230, lon: 136.254344 },
+    T: { lat: 35.368138, lon: 136.174102 },
+    O: { lat: 35.274218, lon: 136.136190 },
+    K: { lat: 35.297069, lon: 136.243910 },
+};
+
+WASAMapManager.phase = 1;
+WASAMapManager.reachedGoal = false;
+WASAMapManager.distance = 0;

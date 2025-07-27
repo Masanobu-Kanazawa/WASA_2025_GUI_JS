@@ -385,10 +385,10 @@
             <!-- 地図コントロール -->
             <div class="map-controls">
                 <select id="map-selector" class="map-selector">
+                    <option value="biwako">琵琶湖</option>
                     <option value="fuzigawa">富士川</option>
                     <option value="ootone">大利根</option>
                     <option value="okegawa">桶川</option>
-                    <option value="biwako">琵琶湖</option>
                 </select>
                 
                 <button id="trajectory-btn" class="control-btn">軌跡開始</button>
@@ -419,40 +419,50 @@
                     <div class="data-row">
                         <span class="data-label">緯度:</span>
                         <span class="data-value" id="latitude-value">-</span>
+                        <span class="data-label"> °</span>
                         <span class="data-label">経度:</span>
                         <span class="data-value" id="longitude-value">-</span>
+                        <span class="data-label"> °</span>
                     </div>
                     
-                    <!-- 3段目: 高度・回転数 -->
+                    <!-- 3段目: 高度・ペラ回転数 -->
                     <div class="data-row">
                         <span class="data-label">高度:</span>
                         <span class="data-value" id="altitude-value">-</span>
-                        <span class="data-label">回転数:</span>
+                        <span class="data-label"> m</span>
+                        <span class="data-label">ペラ回転数:</span>
                         <span class="data-value" id="rpm-value">-</span>
+                        <span class="data-label"> rpm/min</span>
                     </div>
                     
                     <!-- 4段目: 対気・対地 -->
                     <div class="data-row">
                         <span class="data-label">対気:</span>
                         <span class="data-value" id="tacho-value">-</span>
+                        <span class="data-label"> m</span>
                         <span class="data-label">対地:</span>
                         <span class="data-value" id="ground-speed-value">-</span>
+                        <span class="data-label"> m/s</span>
                     </div>
                     
                     <!-- 5段目: 海抜・方位・温度 -->
                     <div class="data-row">
                         <span class="data-label">海抜:</span>
                         <span class="data-value" id="gps-altitude-value">-</span>
+                        <span class="data-label"> m</span>
                         <span class="data-label">方位:</span>
                         <span class="data-value" id="gps-course-value">-</span>
+                        <span class="data-label"> °</span>
                         <span class="data-label">温度:</span>
                         <span class="data-value" id="temperature-value">-</span>
+                        <span class="data-label"> ℃</span>
                     </div>
                     
                     <!-- 6段目: 水平・トリム -->
                     <div class="data-row">
                         <span class="data-label">水平:</span>
                         <span class="data-value" id="elevator-angle-value">-</span>
+                        <span class="data-label"> °</span>
                         <span class="data-label">トリム:</span>
                         <span class="data-value" id="rudder-trim-value">-</span>
                     </div>
@@ -461,16 +471,20 @@
                     <div class="data-row">
                         <span class="data-label">垂直:</span>
                         <span class="data-value" id="rudder-angle-value">-</span>
+                        <span class="data-label"> °</span>
                     </div>
                     
                     <!-- 8段目: roll, pitch, yaw -->
                     <div class="data-row">
                         <span class="data-label">roll:</span>
                         <span class="data-value" id="roll-value">-</span>
+                        <span class="data-label"> °</span>
                         <span class="data-label">pitch:</span>
                         <span class="data-value" id="pitch-value">-</span>
+                        <span class="data-label"> °</span>
                         <span class="data-label">yaw:</span>
                         <span class="data-value" id="yaw-value">-</span>
+                        <span class="data-label"> °</span>
                     </div>
                 </div>
                 
@@ -484,37 +498,37 @@
             <div class="graph-section">
                 <!-- 高度グラフ -->
                 <div class="graph-container">
-                    <div class="graph-title">高度</div>
+                    <div class="graph-title">高度（m）</div>
                     <canvas class="graph-canvas" id="altitude-graph"></canvas>
                 </div>
                 
                 <!-- 回転数グラフ -->
                 <div class="graph-container">
-                    <div class="graph-title">回転数</div>
+                    <div class="graph-title">回転数（rpm/min）</div>
                     <canvas class="graph-canvas" id="rpm-graph"></canvas>
                 </div>
                 
                 <!-- 対気速度グラフ -->
                 <div class="graph-container">
-                    <div class="graph-title">対気速度</div>
+                    <div class="graph-title">対気速度（m/s）</div>
                     <canvas class="graph-canvas" id="tas-graph"></canvas>
                 </div>
                 
                 <!-- 対地速度グラフ -->
                 <div class="graph-container">
-                    <div class="graph-title">対地速度</div>
+                    <div class="graph-title">対地速度（m/s）</div>
                     <canvas class="graph-canvas" id="ground-graph"></canvas>
                 </div>
                 
                 <!-- Rollグラフ -->
                 <div class="graph-container">
-                    <div class="graph-title">roll</div>
+                    <div class="graph-title">roll（°）</div>
                     <canvas class="graph-canvas" id="roll-graph"></canvas>
                 </div>
                 
                 <!-- Pitchグラフ -->
                 <div class="graph-container">
-                    <div class="graph-title">pitch</div>
+                    <div class="graph-title">pitch（°）</div>
                     <canvas class="graph-canvas" id="pitch-graph"></canvas>
                 </div>
             </div>
